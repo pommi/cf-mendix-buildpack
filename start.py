@@ -755,6 +755,7 @@ def set_up_m2ee_client(vcap_data):
     )
     version = m2ee.config.get_runtime_version()
 
+    start_time = time.time()
     mendix_runtimes_path = "/usr/local/share/mendix-runtimes.git"
     mendix_runtime_version_path = os.path.join(
         os.getcwd(), "runtimes", str(version)
@@ -817,8 +818,16 @@ def set_up_m2ee_client(vcap_data):
                 buildpackutil.download_and_unpack(
                     url, os.path.join(os.getcwd(), "runtimes")
                 )
-
         m2ee.reload_config()
+    else:
+        logger.info('XXX: {} already exists'.format(mendix_runtime_version_path))
+
+    duration = '{0:.2f}s'.format(time.time() - start_time)
+    logger.info('-----> Checkout Mendix Runtime {version} ({duration})'.format(
+        version=version,
+        duration=duration
+    ))
+
     set_runtime_config(
         m2ee.config._model_metadata,
         m2ee.config._conf["mxruntime"],

@@ -228,6 +228,7 @@ def ensure_mxbuild_in_directory(directory, mx_version, cache_dir):
 
 
 def _checkout_from_git_rootfs(directory, mx_version):
+    start_time = time.time()
     mendix_runtimes_path = "/usr/local/share/mendix-runtimes.git"
     if not os.path.isdir(mendix_runtimes_path):
         raise NotFoundException()
@@ -275,6 +276,11 @@ def _checkout_from_git_rootfs(directory, mx_version):
         + str(mx_version)
         + " from updated git repo"
     )
+    duration = '{0:.2f}s'.format(time.time() - start_time)
+    logging.info('-----> Checkout Mendix Build Runtime {version} ({duration})'.format(
+        version=version,
+        duration=duration
+    ))
 
 
 def _get_env_with_monolib(mono_dir):
