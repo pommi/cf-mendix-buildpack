@@ -5,6 +5,7 @@ import os
 import platform
 import subprocess
 import sys
+import time
 from distutils.util import strtobool
 
 sys.path.insert(0, "lib")
@@ -74,23 +75,7 @@ def download_and_unpack(url, destination, cache_dir="/tmp/downloads"):
     mkdir_p(destination)
     cached_location = os.path.join(cache_dir, file_name)
 
-    logging.debug(
-        "Looking for {cached_location}".format(cached_location=cached_location)
-    )
-
-    if not os.path.isfile(cached_location):
-        download(url, cached_location)
-        logging.debug(
-            "downloaded to {cached_location}".format(
-                cached_location=cached_location
-            )
-        )
-    else:
-        logging.debug(
-            "found in cache: {cached_location}".format(
-                cached_location=cached_location
-            )
-        )
+    download(url, cached_location)
 
     logging.debug(
         "extracting: {cached_location} to {dest}".format(
@@ -134,19 +119,29 @@ def get_buildpack_loglevel():
 
 
 def download(url, destination):
+    start_time = time.time()
     logging.debug(
         "downloading {url} to {destination}".format(
             url=url, destination=destination
         )
     )
-    with open(destination, "wb") as file_handle:
-        response = requests.get(url, stream=True)
-        if not response.ok:
-            response.raise_for_status()
-        for block in response.iter_content(4096):
-            if not block:
-                break
-            file_handle.write(block)
+    if os.path.isfile(destination):
+        duration = 'found in cache'
+    else:
+        with open(destination, "wb") as file_handle:
+            response = requests.get(url, stream=True)
+            if not response.ok:
+                response.raise_for_status()
+            for block in response.iter_content(4096):
+                if not block:
+                    break
+                file_handle.write(block)
+        duration = '{0:.2f}s'.format(time.time() - start_time)
+
+    logging.info('-----> Downloading {url} ({duration})'.format(
+        url=url,
+        duration=duration
+    ))
 
 
 def get_existing_directory_or_raise(dirs, error):
