@@ -76,23 +76,7 @@ def download_and_unpack(url, destination, cache_dir="/tmp/downloads"):
     cached_location = os.path.join(cache_dir, file_name)
 
     download(url, cached_location)
-
-    logging.debug(
-        "extracting: {cached_location} to {dest}".format(
-            cached_location=cached_location, dest=destination
-        )
-    )
-    if file_name.endswith(".tar.gz") or file_name.endswith(".tgz"):
-        unpack_cmd = ["tar", "xf", cached_location, "-C", destination]
-        if file_name.startswith(("mono-", "jdk-", "jre-", "AdoptOpenJDK-")):
-            unpack_cmd.extend(("--strip", "1"))
-        subprocess.check_call(unpack_cmd)
-    else:
-        raise Exception(
-            "do not know how to unpack {cached_location}".format(
-                cached_location=cached_location
-            )
-        )
+    unpack(file_name, cached_location, destination)
 
     logging.debug(
         "source {file_name} retrieved & unpacked in {destination}".format(
@@ -140,6 +124,31 @@ def download(url, destination):
 
     logging.info('-----> Downloading {url} ({duration})'.format(
         url=url,
+        duration=duration
+    ))
+
+
+def unpack(file_name, cached_location, destination):
+    start_time = time.time()
+    logging.debug(
+        "extracting: {cached_location} to {dest}".format(
+            cached_location=cached_location, dest=destination
+        )
+    )
+    if file_name.endswith(".tar.gz") or file_name.endswith(".tgz"):
+        unpack_cmd = ["tar", "xf", cached_location, "-C", destination]
+        if file_name.startswith(("mono-", "jdk-", "jre-", "AdoptOpenJDK-")):
+            unpack_cmd.extend(("--strip", "1"))
+        subprocess.check_call(unpack_cmd)
+    else:
+        raise Exception(
+            "do not know how to unpack {cached_location}".format(
+                cached_location=cached_location
+            )
+        )
+    duration = '{0:.2f}s'.format(time.time() - start_time)
+    logging.info('-----> Unpacked {file_name} ({duration})'.format(
+        file_name=file_name,
         duration=duration
     ))
 
